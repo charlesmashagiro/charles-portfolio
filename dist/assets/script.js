@@ -1,3 +1,5 @@
+// assets/script.js
+
 "use strict";
 
 // Mobile navigation
@@ -46,18 +48,16 @@ if (menuButton && navigation) {
     }
   });
 
-  window
-    .matchMedia("(min-width: 901px)")
-    .addEventListener("change", closeMenu);
+  const desktopNavigation = window.matchMedia("(min-width: 901px)");
+
+  desktopNavigation.addEventListener("change", (event) => {
+    if (event.matches) {
+      closeMenu();
+    }
+  });
 }
 
-// Read-only progress display.
-//
-// To update progress, edit milestone classes and labels in index.html,
-// then commit and push your changes to GitHub.
-//
-// There are no visitor editing controls, no localStorage,
-// and no endpoint that saves changes.
+// Read-only progress display
 const milestones = [
   ...document.querySelectorAll("#progress .milestone")
 ];
