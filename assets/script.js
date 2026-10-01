@@ -1,15 +1,23 @@
 "use strict";
 
-// Mobile navigation
+/* MOBILE NAVIGATION */
+
 const menuButton = document.querySelector(".menu-button");
-const navigation = document.querySelector(".nav-links");
+const navigation = document.querySelector("#nav-links");
 
 if (menuButton && navigation) {
-  function closeMenu() {
+  document.documentElement.classList.add("js-enabled");
+  menuButton.hidden = false;
+
+  function closeMenu({ restoreFocus = false } = {}) {
     navigation.classList.remove("open");
 
     menuButton.setAttribute("aria-expanded", "false");
     menuButton.setAttribute("aria-label", "Open navigation");
+
+    if (restoreFocus) {
+      menuButton.focus();
+    }
   }
 
   menuButton.addEventListener("click", () => {
@@ -24,7 +32,9 @@ if (menuButton && navigation) {
   });
 
   navigation.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", closeMenu);
+    link.addEventListener("click", () => {
+      closeMenu();
+    });
   });
 
   document.addEventListener("keydown", (event) => {
@@ -32,15 +42,23 @@ if (menuButton && navigation) {
       event.key === "Escape" &&
       navigation.classList.contains("open")
     ) {
-      closeMenu();
-      menuButton.focus();
+      closeMenu({ restoreFocus: true });
     }
   });
 
   document.addEventListener("click", (event) => {
     if (
       event.target instanceof Element &&
-      !event.target.closest(".nav")
+      !event.target.closest(".navigation")
+    ) {
+      closeMenu();
+    }
+  });
+
+  document.addEventListener("focusin", (event) => {
+    if (
+      event.target instanceof Element &&
+      !event.target.closest(".navigation")
     ) {
       closeMenu();
     }
@@ -48,44 +66,105 @@ if (menuButton && navigation) {
 
   window
     .matchMedia("(min-width: 901px)")
-    .addEventListener("change", closeMenu);
+    .addEventListener("change", () => {
+      closeMenu();
+    });
 }
 
-// Read-only progress display.
-//
-// To update progress, edit milestone classes and labels in index.html,
-// then commit and push your changes to GitHub.
-//
-// There are no visitor editing controls, no localStorage,
-// and no endpoint that saves changes.
+/* READ-ONLY LEARNING PROGRESS
+
+   Update a milestone in index.html by changing data-status:
+
+   data-status="completed"
+   data-status="in-progress"
+   data-status="planned"
+
+   Then commit and push your source changes to GitHub.
+
+   Visitors have no editing controls, saved browser state,
+   or endpoint that writes changes to the published website.
+*/
+
+const statusDefinitions = {
+  completed: {
+    label: "Completed",
+    icon: "#icon-check"
+  },
+
+  "in-progress": {
+    label: "In progress",
+    icon: "#icon-clock"
+  },
+
+  planned: {
+    label: "Planned",
+    icon: "#icon-calendar"
+  }
+};
+
 const milestones = [
-  ...document.querySelectorAll("#progress .milestone")
+  ...document.querySelectorAll(".milestone[data-status]")
 ];
+
+let completedCount = 0;
+
+milestones.forEach((milestone) => {
+  const requestedStatus = milestone.dataset.status;
+
+  const status = Object.prototype.hasOwnProperty.call(
+    statusDefinitions,
+    requestedStatus
+  )
+    ? requestedStatus
+    : "planned";
+
+  const definition = statusDefinitions[status];
+
+  milestone.classList.remove(
+    "completed",
+    "in-progress",
+    "planned"
+  );
+
+  milestone.classList.add(status);
+
+  const label = milestone.querySelector(".status");
+  const icon = milestone.querySelector("svg use");
+
+  if (label) {
+    label.textContent = definition.label;
+  }
+
+  if (icon) {
+    icon.setAttribute("href", definition.icon);
+  }
+
+  if (status === "completed") {
+    completedCount += 1;
+  }
+});
+
+const total = milestones.length;
+
+const percentage = total > 0
+  ? Math.round((completedCount / total) * 100)
+  : 0;
 
 const progressNumber = document.getElementById("progress-number");
 const progressCount = document.getElementById("progress-count");
 const progressBar = document.getElementById("learning-progress");
 
-if (milestones.length > 0) {
-  const completed = milestones.filter((milestone) => {
-    return milestone.classList.contains("completed");
-  }).length;
+if (progressNumber) {
+  progressNumber.textContent = `${percentage}%`;
+}
 
-  const total = milestones.length;
-  const percentage = Math.round((completed / total) * 100);
+if (progressCount) {
+  progressCount.textContent =
+    `${completedCount} of ${total} milestones completed`;
+}
 
-  if (progressNumber) {
-    progressNumber.textContent = `${percentage}%`;
-  }
-
-  if (progressCount) {
-    progressCount.textContent =
-      `${completed} of ${total} milestones completed`;
-  }
-
-  if (progressBar) {
-    progressBar.max = total;
-    progressBar.value = completed;
-    progressBar.textContent = `${percentage}%`;
-  }
+if (progressBar) {
+  progressBar.max = Math.max(total, 1);
+  progressBar.value = completedCount;
+  progressBar.textContent = `${percentage}%`;
 }
