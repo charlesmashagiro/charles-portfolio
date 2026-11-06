@@ -6,7 +6,7 @@
     width="64"
     height="64"
     rx="12"
-    fill="#20d5ef"
+    fill="#ffffff"
   />
 
   <text
@@ -16,6 +16,6 @@
     font-family="Arial, sans-serif"
     font-weight="bold"
     font-size="27"
-    fill="#081b2d"
+    fill="#000000"
   >CM</text>
 </svg>
