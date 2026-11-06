@@ -33,7 +33,14 @@ if (menuButton && navigation) {
 
   navigation.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", () => {
-      closeMenu();
+      if (navigation.classList.contains("open")) {
+        const target = document.getElementById(link.hash.slice(1));
+        closeMenu();
+        if (target) {
+          target.tabIndex = -1;
+          target.focus({ preventScroll: true });
+        }
+      }
     });
   });
 
@@ -167,4 +174,51 @@ if (progressBar) {
   progressBar.max = Math.max(total, 1);
   progressBar.value = completedCount;
   progressBar.textContent = `${percentage}%`;
+}
+// Mark the section the visitor is reading, including after an anchor jump.
+const sectionLinks = [...document.querySelectorAll("#nav-links a[href^='#']")]
+  .map(link => ({link, section: document.getElementById(link.hash.slice(1))}))
+  .filter(item => item.section);
+const header = document.querySelector(".site-header");
+let scheduled = false;
+function updateCurrentSection() {
+  scheduled = false;
+  const offset = (getComputedStyle(header).position === "sticky" ? header.offsetHeight : 0) + 42;
+  let current;
+  for (const item of sectionLinks) {
+    if (item.section.getBoundingClientRect().top <= offset) current = item;
+  }
+  if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) {
+    current = sectionLinks[sectionLinks.length - 1];
+  }
+  for (const item of sectionLinks) {
+    if (item === current) item.link.setAttribute("aria-current", "location");
+    else item.link.removeAttribute("aria-current");
+  }
+}
+function scheduleSectionUpdate() {
+  if (scheduled) return;
+  scheduled = true;
+  requestAnimationFrame(updateCurrentSection);
+}
+window.addEventListener("scroll", scheduleSectionUpdate, {passive: true});
+window.addEventListener("resize", scheduleSectionUpdate);
+window.addEventListener("load", scheduleSectionUpdate);
+scheduleSectionUpdate();
+
+// A visitor can use webmail even without a configured mail application.
+const copyButton = document.querySelector(".copy-email");
+const emailLink = document.querySelector("#contact a[href^='mailto:']");
+if (copyButton && emailLink && navigator.clipboard?.writeText) {
+  copyButton.hidden = false;
+  copyButton.addEventListener("click", async () => {
+    const email = emailLink.getAttribute("href").slice(7).split("?")[0];
+    const feedback = document.querySelector(".copy-feedback");
+    try {
+      await navigator.clipboard.writeText(email);
+      feedback.textContent = "Email address copied.";
+    } catch {
+      feedback.textContent = "Copy this address manually: " + email;
+    }
+  });
 }

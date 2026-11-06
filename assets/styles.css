@@ -1160,3 +1160,21 @@ body svg.icon { color: var(--icon-ink) !important; }
   box-shadow: inset 0 0 0 1px #ddd;
 }
 .brand-mark { background: #fff; color: #000; }
+
+/* Keep section jumps and keyboard focus clear of the navigation. */
+html { scroll-padding-top: 6rem; }
+section[id] { scroll-margin-top: .75rem; }
+.js-enabled .site-header { position: sticky; top: 0; z-index: 30; }
+.nav-links a, .text-link, .back-to-top { min-height: 44px; display: inline-flex; align-items: center; }
+.nav-links a[aria-current="location"] { text-decoration: underline; text-underline-offset: .4em; }
+:focus-visible { outline: 3px solid #168ba4; outline-offset: 3px; }
+.dark-section :focus-visible, .site-header :focus-visible, .hero :focus-visible { outline-color: #fff; }
+.copy-email { min-height: 44px; padding: .45rem .85rem; color: var(--ink); background: white; border: 1px solid #798b96; border-radius: 4px; cursor: pointer; }
+.copy-feedback { display: block; font-size: .88rem; }
+@media (max-width: 900px) {
+  .js-enabled .nav-links { max-height: calc(100vh - 90px); max-height: calc(100dvh - 90px); overflow-y: auto; }
+}
+@media (max-height: 430px) {
+  .js-enabled .site-header { position: relative; }
+  html { scroll-padding-top: .5rem; }
+}
